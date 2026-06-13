@@ -35,7 +35,7 @@ async def close() -> None:
     if pool is not None:
         await pool.close()
 
-
+#Added db constrains here
 async def init_db() -> None:
     db = get_pool()
     await db.execute(
@@ -45,8 +45,8 @@ async def init_db() -> None:
             origin TEXT NOT NULL,
             destination TEXT NOT NULL,
             departure_date TEXT NOT NULL,
-            seats_available INTEGER NOT NULL,
-            price_cents INTEGER NOT NULL
+            seats_available INTEGER NOT NULL CHECK (seats_available >= 0),
+            price_cents INTEGER NOT NULL CHECK (price_cents > 0)
         )
         """
     )
@@ -55,10 +55,10 @@ async def init_db() -> None:
         CREATE TABLE IF NOT EXISTS flight_bookings (
             id UUID PRIMARY KEY,
             trip_id UUID NOT NULL,
-            flight_id TEXT NOT NULL,
+            flight_id TEXT NOT NULL REFERENCES flights(id),
             traveler_name TEXT NOT NULL,
-            seats INTEGER NOT NULL,
-            status TEXT NOT NULL,
+            seats INTEGER NOT NULL CHECK (seats > 0),
+            status TEXT NOT NULL CHECK (status IN ('CONFIRMED', 'CANCELLED')),
             created_at TIMESTAMPTZ NOT NULL DEFAULT now()
         )
         """

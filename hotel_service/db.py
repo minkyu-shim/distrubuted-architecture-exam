@@ -35,7 +35,7 @@ async def close() -> None:
     if pool is not None:
         await pool.close()
 
-
+#added db constrains here
 async def init_db() -> None:
     db = get_pool()
     await db.execute(
@@ -44,8 +44,8 @@ async def init_db() -> None:
             id TEXT PRIMARY KEY,
             city TEXT NOT NULL,
             name TEXT NOT NULL,
-            rooms_available INTEGER NOT NULL,
-            price_per_night_cents INTEGER NOT NULL
+            rooms_available INTEGER NOT NULL CHECK (rooms_available >= 0),
+            price_per_night_cents INTEGER NOT NULL CHECK (price_per_night_cents > 0)
         )
         """
     )
@@ -54,11 +54,11 @@ async def init_db() -> None:
         CREATE TABLE IF NOT EXISTS hotel_reservations (
             id UUID PRIMARY KEY,
             trip_id UUID NOT NULL,
-            hotel_id TEXT NOT NULL,
+            hotel_id TEXT NOT NULL REFERENCES hotels(id),
             traveler_name TEXT NOT NULL,
-            nights INTEGER NOT NULL,
-            rooms INTEGER NOT NULL,
-            status TEXT NOT NULL,
+            nights INTEGER NOT NULL CHECK (nights > 0),
+            rooms INTEGER NOT NULL CHECK (rooms > 0),
+            status TEXT NOT NULL CHECK (status IN ('CONFIRMED', 'CANCELLED')),
             created_at TIMESTAMPTZ NOT NULL DEFAULT now()
         )
         """
