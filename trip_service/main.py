@@ -102,12 +102,12 @@ async def create_trip(request: CreateTripRequest) -> dict:
     )
     trip_id = trip["id"]
     await db.log_saga_step(trip_id, "PENDING")
+    if request.idempotency_key:
+        await db.store_idempotency_key(request.idempotency_key, trip_id)
 
     # First step: Book flight
     await db.update_trip(trip_id, saga_step="BOOKING_FLIGHT")
     await db.log_saga_step(trip_id, "BOOKING_FLIGHT")
-    if request.idempotency_key:
-        await db.store_idempotency_key(request.idempotency_key, trip_id)
 
     try:
         flight_booking = await clients.book_flight(
