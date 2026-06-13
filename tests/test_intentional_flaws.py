@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import os
 import time
+from uuid import uuid4
 
 import httpx
 
@@ -23,13 +24,14 @@ def reset_all() -> None:
             client.post(f"{base_url}/admin/reset").raise_for_status()
 
 
-def trip_payload(**simulate):
+def trip_payload(idempotency_key: str | None = None, **simulate):
     return {
         "user_id": "user-1",
         "traveler_name": "Ada Lovelace",
         "flight_id": "FL-MANY-SEATS",
         "hotel_id": "HT-MANY-ROOMS",
         "nights": 2,
+        "idempotency_key": idempotency_key or str(uuid4()),
         "simulate": simulate,
     }
 
@@ -45,9 +47,9 @@ def wait_for_notifications(trip_id: str, minimum: int) -> list[dict]:
         return client.get(f"{NOTIFICATION_URL}/notifications/{trip_id}").json()
 
 
-def test_duplicate_request_is_not_idempotent_in_baseline() -> None:
+def test_duplicate_request_with_same_idempotency_key_creates_one_trip() -> None:
     reset_all()
-    payload = trip_payload()
+    payload = trip_payload(idempotency_key="test-idem-key-6767")
     with httpx.Client(timeout=15) as client:
         first = client.post(f"{TRIP_URL}/trips", json=payload)
         second = client.post(f"{TRIP_URL}/trips", json=payload)
@@ -58,11 +60,11 @@ def test_duplicate_request_is_not_idempotent_in_baseline() -> None:
 
     assert first.status_code == 200
     assert second.status_code == 200
-    assert first.json()["id"] != second.json()["id"]
-    assert len(trips) == 2
-    assert len(flight_state["flight_bookings"]) == 2
-    assert len(hotel_state["hotel_reservations"]) == 2
-    assert len(payment_state["payment_authorizations"]) == 2
+    assert first.json()["id"] == second.json()["id"]
+    assert len(trips) == 1
+    assert len(flight_state["flight_bookings"]) == 1
+    assert len(hotel_state["hotel_reservations"]) == 1
+    assert len(payment_state["payment_authorizations"]) == 1
 
 
 def test_payment_failure_leaves_reserved_resources_in_baseline() -> None:
