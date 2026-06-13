@@ -57,6 +57,15 @@ async def get_trip(trip_id: UUID) -> dict:
 
 @app.post("/trips")
 async def create_trip(request: CreateTripRequest) -> dict:
+    if request.idempotency_key:
+        existing = await db.get_idempotency_key(request.idempotency_key)
+        if existing:
+            trip = await db.get_trip(existing["trip_id"])
+            if trip is None:
+                # Theoretically shouldn't happen, unless someone manually deletes a trip row in the DB
+                raise HTTPException(status_code=500, detail="Idempotency key points to missing trip")
+            return trip
+
     trip = await db.create_trip(
         user_id=request.user_id,
         traveler_name=request.traveler_name,
@@ -65,6 +74,9 @@ async def create_trip(request: CreateTripRequest) -> dict:
         nights=request.nights,
     )
     trip_id = trip["id"]
+
+    if request.idempotency_key:
+        await db.store_idempotency_key(request.idempotency_key, trip_id)
 
     try:
         # INTENTIONAL NAIVE DESIGN:
