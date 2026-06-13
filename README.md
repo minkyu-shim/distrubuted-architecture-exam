@@ -121,3 +121,22 @@ For limited-surface concepts such as idempotency keys, the expected implementati
 You must document your work by adding a `## Exam refactor` section to this README and by creating one concept card per implemented concept under `docs/concepts/`.
 
 Do not assume the starter app is correct. Its flaws are the point of the exercise.
+
+## Exam refactor
+
+This submission implements and demonstrates the following local-correctness concepts:
+
+| Concept | Category | Implementation | Observable verification |
+| --- | --- | --- | --- |
+| Database constraints and transaction atomicity | A1 - Integrity and atomicity | Flight and hotel inventory tables enforce valid local state with database `CHECK` constraints. Booking/reservation writes run inside database transactions. | Invalid direct writes are rejected. The flight `fail_after_decrement` fault returns `500`, but the transaction rolls back, the seat is not consumed, and no booking is inserted. |
+| Pessimistic locking | A2 - Concurrency control | Flight bookings and hotel reservations lock the selected inventory row with `SELECT ... FOR UPDATE` before checking and decrementing availability. | Concurrent requests for the one-seat flight or one-room hotel serialize: one request succeeds, one returns conflict, and inventory does not go negative. |
+
+The implementation is documented in `docs/concept-A.md`.
+
+Verification commands:
+
+```bash
+docker compose run --rm tools python scripts/demo_a1_database_constraints.py
+docker compose run --rm tools python scripts/demo_a1_transaction_rollback.py
+docker compose run --rm tools python scripts/demo_a2_pessimistic_locking.py
+```
