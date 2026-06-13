@@ -121,3 +121,11 @@ For limited-surface concepts such as idempotency keys, the expected implementati
 You must document your work by adding a `## Exam refactor` section to this README and by creating one concept card per implemented concept under `docs/concepts/`.
 
 Do not assume the starter app is correct. Its flaws are the point of the exercise.
+
+## Exam refractor
+
+AI assistance was used for brainstorming, debugging, and documentation. Implementation of the selected concepts was done manually.
+
+| Concept | Category | Main files modified | How to test it |
+|---|---|---|---|
+| Saga with durable state machine | B | `trip_service/db.py`, `trip_service/main.py`, `trip_service/clients.py` | `docker compose run --rm tools python scripts/demo_saga_compensation.py` |
