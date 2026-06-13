@@ -17,5 +17,7 @@ class CreateTripRequest(BaseModel):
     flight_id: str
     hotel_id: str
     nights: int
+    idempotency_key: str
+    # idempotency_key: str None | None <- This might be better if we already have clients that has booking without idem
     simulate: SimulationOptions = Field(default_factory=SimulationOptions)
 

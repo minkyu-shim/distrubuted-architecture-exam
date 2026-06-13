@@ -84,6 +84,15 @@ async def _compensate(trip_id: UUID, trip: dict, reason: str) -> dict:
 
 @app.post("/trips")
 async def create_trip(request: CreateTripRequest) -> dict:
+    if request.idempotency_key:
+        existing = await db.get_idempotency_key(request.idempotency_key)
+        if existing:
+            trip = await db.get_trip(existing["trip_id"])
+            if trip is None:
+                # Theoretically shouldn't happen, unless someone manually deletes a trip row in the DB
+                raise HTTPException(status_code=500, detail="Idempotency key points to missing trip")
+            return trip
+
     trip = await db.create_trip(
         user_id=request.user_id,
         traveler_name=request.traveler_name,
@@ -97,6 +106,9 @@ async def create_trip(request: CreateTripRequest) -> dict:
     # First step: Book flight
     await db.update_trip(trip_id, saga_step="BOOKING_FLIGHT")
     await db.log_saga_step(trip_id, "BOOKING_FLIGHT")
+    if request.idempotency_key:
+        await db.store_idempotency_key(request.idempotency_key, trip_id)
+
     try:
         flight_booking = await clients.book_flight(
             flight_id=request.flight_id,

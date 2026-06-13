@@ -71,11 +71,47 @@ async def init_db() -> None:
         )
         """
     )
+    await get_pool().execute(
+        """
+        CREATE TABLE IF NOT EXISTS idempotency_keys (
+            key TEXT PRIMARY KEY,
+            trip_id UUID NOT NULL REFERENCES trips(id),
+            created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+        )
+        """
+    )
 
 
 async def reset_db() -> None:
     await get_pool().execute("DELETE FROM saga_logs")
+    await get_pool().execute("DELETE FROM idempotency_keys")
     await get_pool().execute("DELETE FROM trips")
+
+
+"""
+store_idempotency_key makes sure that if there is same idempotency key insertion, it will silently skip it
+Then get_idempotency_key returns a row, you know a trip was already created for this key.
+AKA, you return the existing trip instead of creating a new one
+"""
+
+async def get_idempotency_key(key: str) -> dict | None:
+    row = await get_pool().fetchrow(
+        "SELECT * FROM idempotency_keys WHERE key = $1",
+        key,
+    )
+    return dict(row) if row else None
+
+
+async def store_idempotency_key(key: str, trip_id: UUID) -> None:
+    await get_pool().execute(
+        "INSERT INTO idempotency_keys (key, trip_id) VALUES ($1, $2) ON CONFLICT (key) DO NOTHING",
+        # using $1, $2 to prevent SQL injection
+        # ON CONFLICT (key) DO NOTHING -> very important
+        # key here is the PK, in another word, no two rows can have the same key. Insert duplicate PK would crash
+        # If a row with that key already exists, skip the insert instead of crashing
+        key,
+        trip_id,
+    )
 
 
 async def create_trip(
