@@ -54,6 +54,7 @@ def test_happy_path_trip_booking_succeeds_and_notifies() -> None:
                 "flight_id": "FL-MANY-SEATS",
                 "hotel_id": "HT-MANY-ROOMS",
                 "nights": 2,
+                "idempotency_key": "smoke-test-happy-path",
                 "simulate": {},
             },
         )
