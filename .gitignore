@@ -27,6 +27,9 @@ htmlcov/
 # macOS
 .DS_Store
 
+# LLMs
+CLAUDE.md
+
 # IDE
 .idea/
 .vscode/
