@@ -129,3 +129,4 @@ AI assistance was used for brainstorming, debugging, and documentation. Implemen
 | Concept | Category | Main files modified | How to test it |
 |---|---|---|---|
 | Saga with durable state machine | B | `trip_service/db.py`, `trip_service/main.py`, `trip_service/clients.py` | `docker compose run --rm tools python scripts/demo_saga_compensation.py` |
+| Idempotency key | C | `trip_service/schemas.py`, `trip_service/db.py`, `trip_service/main.py` | `docker compose run --rm tools python scripts/demo_idempotency_key.py` |
