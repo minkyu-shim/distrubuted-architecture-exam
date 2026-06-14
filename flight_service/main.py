@@ -83,6 +83,7 @@ async def book_flight(flight_id: str, request: FlightBookingRequest) -> dict:
             if request.fail_after_decrement:
                 raise HTTPException(status_code=500, detail="Forced failure after decrement")
 
+            booking_id = uuid4()
             booking = await conn.fetchrow(
                 """
                 INSERT INTO flight_bookings
@@ -91,7 +92,7 @@ async def book_flight(flight_id: str, request: FlightBookingRequest) -> dict:
                 ($1, $2, $3, $4, $5, 'CONFIRMED')
                 RETURNING *
                 """,
-                uuid4(),
+                booking_id,
                 request.trip_id,
                 flight_id,
                 request.traveler_name,

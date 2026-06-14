@@ -128,5 +128,7 @@ AI assistance was used for brainstorming, debugging, and documentation. Implemen
 
 | Concept | Category | Main files modified | How to test it |
 |---|---|---|---|
+| Database constraints | A1 - Integrity and atomicity | `flight_service/db.py`, `hotel_service/db.py`, `scripts/demo_a1_database_constraints.py`, `docs/concept-A.md` | Run `docker compose run --rm tools python scripts/demo_a1_database_constraints.py`. The demo should finish with `A1 PASS: database constraints reject invalid local state.` |
+| Pessimistic locking | A2 - Concurrency control | `flight_service/main.py`, `hotel_service/main.py`, `scripts/demo_a2_pessimistic_locking.py`, `docs/concept-A.md` | Run `docker compose run --rm tools python scripts/demo_a2_pessimistic_locking.py`. The demo should finish with `A2 PASS: concurrent requests serialize and only one reservation is created.` |
 | Saga with durable state machine | B | `trip_service/db.py`, `trip_service/main.py`, `trip_service/clients.py` | `docker compose run --rm tools python scripts/demo_saga_compensation.py` |
 | Idempotency key | C | `trip_service/schemas.py`, `trip_service/db.py`, `trip_service/main.py` | `docker compose run --rm tools python scripts/demo_idempotency_key.py` |

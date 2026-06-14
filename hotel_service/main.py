@@ -83,6 +83,7 @@ async def reserve_hotel(hotel_id: str, request: HotelReservationRequest) -> dict
                 hotel_id,
             )
 
+            reservation_id = uuid4()
             reservation = await conn.fetchrow(
                 """
                 INSERT INTO hotel_reservations
@@ -91,7 +92,7 @@ async def reserve_hotel(hotel_id: str, request: HotelReservationRequest) -> dict
                 ($1, $2, $3, $4, $5, $6, 'CONFIRMED')
                 RETURNING *
                 """,
-                uuid4(),
+                reservation_id,
                 request.trip_id,
                 hotel_id,
                 request.traveler_name,
