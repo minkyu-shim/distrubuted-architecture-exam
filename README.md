@@ -124,19 +124,18 @@ Do not assume the starter app is correct. Its flaws are the point of the exercis
 
 ## Exam refactor
 
-This submission implements and demonstrates the following local-correctness concepts:
+This submission implements and demonstrates the following local-correctness concepts.
 
-| Concept | Category | Implementation | Observable verification |
-| --- | --- | --- | --- |
-| Database constraints and transaction atomicity | A1 - Integrity and atomicity | Flight and hotel inventory tables enforce valid local state with database `CHECK` constraints. Booking/reservation writes run inside database transactions. | Invalid direct writes are rejected. The flight `fail_after_decrement` fault returns `500`, but the transaction rolls back, the seat is not consumed, and no booking is inserted. |
-| Pessimistic locking | A2 - Concurrency control | Flight bookings and hotel reservations lock the selected inventory row with `SELECT ... FOR UPDATE` before checking and decrementing availability. | Concurrent requests for the one-seat flight or one-room hotel serialize: one request succeeds, one returns conflict, and inventory does not go negative. |
+| Concept | Category | Main files modified | How to test it |
+|---|---|---|---|
+| Database constraints | A1 - Integrity and atomicity | `flight_service/db.py`, `hotel_service/db.py`, `scripts/demo_a1_database_constraints.py`, `docs/concept-A.md` | Run `docker compose run --rm tools python scripts/demo_a1_database_constraints.py`. The demo should finish with `A1 PASS: database constraints reject invalid local state.` |
+| Pessimistic locking | A2 - Concurrency control | `flight_service/main.py`, `hotel_service/main.py`, `scripts/demo_a2_pessimistic_locking.py`, `docs/concept-A.md` | Run `docker compose run --rm tools python scripts/demo_a2_pessimistic_locking.py`. The demo should finish with `A2 PASS: concurrent requests serialize and only one reservation is created.` |
 
-The implementation is documented in `docs/concept-A.md`.
+The implementation details are documented in `docs/concept-A.md`.
 
-Verification commands:
+Useful verification commands:
 
 ```bash
 docker compose run --rm tools python scripts/demo_a1_database_constraints.py
-docker compose run --rm tools python scripts/demo_a1_transaction_rollback.py
 docker compose run --rm tools python scripts/demo_a2_pessimistic_locking.py
 ```
