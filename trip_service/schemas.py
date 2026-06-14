@@ -17,5 +17,6 @@ class CreateTripRequest(BaseModel):
     flight_id: str
     hotel_id: str
     nights: int
+    idempotency_key: str | None = None
     simulate: SimulationOptions = Field(default_factory=SimulationOptions)
 
